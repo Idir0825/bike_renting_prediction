@@ -1,0 +1,18 @@
+dataset:
+  name: "UCI Bike Sharing Dataset"
+  source_url: "https://archive.ics.uci.edu/static/public/275/bike+sharing+dataset.zip"
+  sha256: "b70182d0d0508e9abbb79306ce5c0cec34869000f8220175ac83d11dbe845401"
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  zip_filename: "bike_sharing_dataset.zip"
+  extracted_dirname: "bike_sharing_dataset"
+
+files:
+  hourly_csv: "hour.csv"
+  daily_csv: "day.csv"
+
+processing:
+  target: "cnt"
+  datatime_columns:
+    - "dteday"
+  output_format: "parquet"
