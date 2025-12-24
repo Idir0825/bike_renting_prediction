@@ -3,57 +3,12 @@ from __future__ import annotations
 import hashlib
 import shutil
 import zipfile
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict
 
 import requests
-import yaml
 
-
-# --------- Config loading ---------
-def load_yaml(path: str | Path) -> Dict[str, Any]:
-    path = Path(path)
-    with path.open("r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
-
-
-@dataclass(frozen=True)
-class DataConfig:
-    name: str
-    source_url: str
-    sha256: str
-    raw_dir: str
-    processed_dir: str
-    zip_filename: str
-    extracted_dirname: str
-    hourly_csv: str
-    daily_csv: str
-
-    @property
-    def zip_path(self) -> Path:
-        return self.raw_dir / self.zip_filename
-
-    @property
-    def extracted_path(self) -> Path:
-        return self.raw_dir / self.extracted_dirname
-
-
-def parse_config(cfg: Dict[str, Any]) -> DataConfig:
-    d = cfg["dataset"]
-    f = cfg["files"]
-
-    return DataConfig(
-        name=d["name"],
-        source_url=d["source_url"],
-        sha256=str(d["sha256"]).strip(),
-        raw_dir=Path(d["raw_dir"]),
-        processed_dir=Path(d["processed_dir"]),
-        zip_filename=d["zip_filename"],
-        extracted_dirname=d["extracted_dirname"],
-        hourly_csv=f["hourly_csv"],
-        daily_csv=f["daily_csv"]
-    )
+from src.utils.configs.data_config import DataConfig, parse_config
+from src.utils.utils import load_yaml, check_paths_exist
 
 
 # --------- Integrity ---------
@@ -94,7 +49,7 @@ def ensure_extracted(cfg: DataConfig) -> None:
     if cfg.extracted_path.exists():
         return
 
-    tmp_dir = cfg.raw_dir / (cfg.extracted_dirname + "_tmp")
+    tmp_dir = cfg.raw_dir / (cfg.dataset_dirname + "_tmp")
     if tmp_dir.exists():
         shutil.rmtree(tmp_dir)
 
@@ -108,21 +63,11 @@ def main(config_path: str = "configs/data.yaml") -> None:
     cfg_dict = load_yaml(config_path)
     cfg = parse_config(cfg_dict)
 
-    cfg.raw_dir.mkdir(parents=True, exist_ok=True)
-    cfg.processed_dir.mkdir(parents=True, exist_ok=True)
-
     ensure_downloaded(cfg)
     ensure_extracted(cfg)
 
     # Sanity check
-    hourly = cfg.extracted_path / cfg.hourly_csv
-    daily = cfg.extracted_path / cfg.daily_csv
-    if not hourly.exists() or not daily.exists():
-        raise FileNotFoundError(
-            f"Expected files not found in {cfg.extracted_path}",
-            f"Missing: {hourly.name if not hourly.exists() else ''}"
-            f"{daily.name if not daily.exists() else ''}"
-        )
+    check_paths_exist([cfg.raw_hourly_data_path, cfg.raw_daily_data_path])
 
 
 if __name__ == '__main__':

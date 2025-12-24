@@ -5,7 +5,7 @@ dataset:
   raw_dir: "data/raw"
   processed_dir: "data/processed"
   zip_filename: "bike_sharing_dataset.zip"
-  extracted_dirname: "bike_sharing_dataset"
+  dataset_dirname: "bike_sharing_dataset"
 
 files:
   hourly_csv: "hour.csv"
@@ -15,4 +15,3 @@ processing:
   target: "cnt"
   datatime_columns:
     - "dteday"
-  output_format: "parquet"
