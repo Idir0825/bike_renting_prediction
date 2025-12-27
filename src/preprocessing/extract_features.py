@@ -1,3 +1,7 @@
+"""
+
+"""
+
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 import numpy as np
@@ -5,14 +9,20 @@ import numpy as np
 from src.utils.configs.data_config import parse_config
 from src.utils.utils import load_yaml, check_paths_exist
 
-from src.ingest.ingest_constants import columns_to_drop, categorical_features, column_names_map
+from src.preprocessing.extract_constants import columns_to_drop, categorical_features, column_names_map
 
 
-def one_hot_encode(df: pd.DataFrame,
-                   columns: list[str]
-                   ) -> tuple[pd.DataFrame, OneHotEncoder]:
+def one_hot_encode(df: pd.DataFrame, columns: list[str]) -> tuple[pd.DataFrame, OneHotEncoder]:
     """
-    One-hot encode specified categorical columns and return the transformed dataframe and the fitted encoder
+    One-hot encode the specified categorical columns.
+
+    Args:
+        df: Input dataframe.
+        columns: The columns to encode.
+
+    Returns:
+        df_out: The transformed dataframe
+        encoder: The fitted encoder
     """
     encoder = OneHotEncoder(
         sparse_output=False,
@@ -35,6 +45,9 @@ def one_hot_encode(df: pd.DataFrame,
 def cyclic_encode(df: pd.DataFrame, periods: dict[str, int], drop: bool = True, offsets: dict[str, int] | None = None) -> pd.DataFrame:
     """
     Add cyclic (sin/cos) encoding for specified columns.
+    Useful to keep the periodic nature of data while avoiding artificial priority given by higher values.
+    Gives a continuous 2D representation to the data (sine and cosine), so that values close in the cycle (e.g., 23 and 0)
+    remain close in the encoded representation.
 
     Args:
         df: Input dataframe.
@@ -80,19 +93,19 @@ def main(config_path: str = "configs/data.yaml") -> None:
     daily_df.drop(columns_to_drop, axis=1, inplace=True)
     hourly_df.drop(columns_to_drop, axis=1, inplace=True)
 
-    # One hot encode categorical features
-    daily_df_cat_encoded, daily_df_cat_encoder = one_hot_encode(daily_df, categorical_features)
-    hourly_df_cat_encoded, hourly_df_cat_encoder = one_hot_encode(hourly_df, categorical_features)
+    # One hot encode categorical preprocessing
+    daily_df_cat_encoded, _ = one_hot_encode(daily_df, categorical_features)
+    hourly_df_cat_encoded, _ = one_hot_encode(hourly_df, categorical_features)
     for df in [daily_df_cat_encoded, hourly_df_cat_encoded]:
         df.rename(columns=column_names_map, inplace=True)
 
-    # Cyclic encode periodic features
+    # Cyclic encode periodic preprocessing
     daily_df_processed = cyclic_encode(daily_df_cat_encoded, periods={"weekday": 7, "mnth": 12}, offsets={"mnth": 1})  # mnth is 1..12 in this dataset
     hourly_df_processed = cyclic_encode(hourly_df_cat_encoded, periods={"hr": 24, "weekday": 7, "mnth": 12}, offsets={"mnth": 1})
 
     # Save processed data
-    daily_df_processed.to_csv(cfg.processed_daily_data_path)
-    hourly_df_processed.to_csv(cfg.processed_hourly_data_path)
+    daily_df_processed.to_csv(cfg.processed_daily_data_path, index=False)
+    hourly_df_processed.to_csv(cfg.processed_hourly_data_path, index=False)
 
 
 if __name__ == '__main__':
