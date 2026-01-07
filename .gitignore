@@ -1,3 +1,4 @@
 /data
-.idea
+.idea/
 *__pycache__
+TODO.md

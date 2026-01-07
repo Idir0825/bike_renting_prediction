@@ -1,0 +1,57 @@
+baseline:
+  model_type: SVR
+  class_path: sklearn.svm.SVR
+  code_path: models/baseline.py
+  tuning:
+    enabled: false
+  best:
+    parameters: { }
+    path: ""
+    metric: ""
+    value: 0.0
+    trained_at: ""
+
+random_forest:
+  model_type: RF
+  class_path: sklearn.ensemble.RandomForestRegressor
+  code_path: models/random_forest.py
+  tuning:
+    enabled: true
+    method: grid
+    cv: 5
+    param_grid:
+      n_estimators: [ 200, 400, 800 ]
+      max_depth:
+        start: 4
+        stop: 32
+        step: 4
+  best:
+    parameters: { }
+    path: ""
+    metric: ""
+    value: 0.0
+    trained_at: ""
+
+xgboost:
+  model_type: XGB
+  class_path: xgboost.XGBRegressor
+  code_path: models/xgboost.py
+
+  tuning:
+    enabled: true
+    method: grid
+    cv: 5
+    param_grid:
+      n_estimators: [ 300, 600, 900 ]
+      learning_rate: [ 0.03, 0.05, 0.1 ]
+      max_depth:
+        start: 3
+        stop: 9
+        step: 3
+
+  best:
+    path: ""
+    parameters: { }
+    metric: ""
+    value: 0.0
+    trained_at: ""

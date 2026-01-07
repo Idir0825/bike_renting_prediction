@@ -6,7 +6,9 @@ from src.utils.utils import load_yaml, check_paths_exist
 
 
 # --------- Main pipeline ---------
-def main(args: argparse.Namespace, config_path: str = "configs/data.yaml") -> None:
+def main(splits=None, config_path: str = "configs/data.yaml") -> None:
+    splits = splits or [0.85, 0.15]
+
     cfg_dict = load_yaml(config_path)
     cfg = parse_config(cfg_dict)
 
@@ -15,7 +17,7 @@ def main(args: argparse.Namespace, config_path: str = "configs/data.yaml") -> No
     daily_df = pd.read_csv(cfg.processed_daily_data_path)
     hourly_df = pd.read_csv(cfg.processed_hourly_data_path)
 
-    train_split, _ = args.splits
+    train_split, _ = splits
     nb_train_records_daily = int(len(daily_df) * train_split)
     nb_train_records_hourly = int(len(hourly_df) * train_split)
 
